@@ -119,7 +119,7 @@ let tasks=JSON.parse(localStorage.getItem("tarefas_tasks")||"null")||[
  {id:3,title:"Organizar quarto",date:todayISO(),time:"",duration:"",category:"home",description:"",completed:true},
  {id:4,title:"Comprar material",date:todayISO(),time:"",duration:"",category:"shopping",description:"",completed:false}
 ];
-let state={view:"today",filter:"all",editing:null,detail:null,weekOffset:0,monthOffset:0};
+let state={view:"today",filter:"all",editing:null,detail:null,weekOffset:0,monthOffset:0,statsPeriod:"week",statsStart:"",statsEnd:"",statsCategory:"all"};
 const save=()=>localStorage.setItem("tarefas_tasks",JSON.stringify(tasks));
 const pad=n=>String(n).padStart(2,"0");
 const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -168,11 +168,39 @@ function renderCalendar(){
  return `<div class="filters"><button class="secondary" id="prevMonth">‹</button><button class="secondary" id="monthToday">Hoje</button><button class="secondary" id="nextMonth">›</button><strong style="padding:9px">${month.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}</strong></div>
  <div class="calendar"><div class="cal-head">${["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"].map(x=>`<div>${x}</div>`).join("")}</div><div class="cal-grid">${cells}</div></div>`;
 }
+function statsRange(){
+ const now=new Date();
+ if(state.statsPeriod==="week"){
+   const start=getMonday(now), end=new Date(start); end.setDate(start.getDate()+6);
+   return {start:iso(start),end:iso(end),label:`${fmtDate(iso(start))} – ${fmtDate(iso(end))}`};
+ }
+ if(state.statsPeriod==="month"){
+   const start=new Date(now.getFullYear(),now.getMonth(),1), end=new Date(now.getFullYear(),now.getMonth()+1,0);
+   return {start:iso(start),end:iso(end),label:now.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})};
+ }
+ if(state.statsPeriod==="year"){
+   const start=new Date(now.getFullYear(),0,1), end=new Date(now.getFullYear(),11,31);
+   return {start:iso(start),end:iso(end),label:String(now.getFullYear())};
+ }
+ const start=state.statsStart||todayISO(), end=state.statsEnd||start;
+ return {start:start<=end?start:end,end:start<=end?end:start,label:`${fmtDate(start<=end?start:end)} – ${fmtDate(start<=end?end:start)}`};
+}
 function renderStats(){
- const all=tasks;const p=progressFor(all);const by=Object.entries(cats).map(([k,c])=>{const a=all.filter(t=>t.category===k),q=progressFor(a);return {c,a,q}}).filter(x=>x.a.length);
- return `<div class="filters"><button class="chip active">Semana</button><button class="chip">Mês</button><button class="chip">Ano</button><button class="chip">Personalizado</button></div>
+ const range=statsRange();
+ let all=tasks.filter(t=>t.date>=range.start && t.date<=range.end);
+ if(state.statsCategory!=="all") all=all.filter(t=>t.category===state.statsCategory);
+ const p=progressFor(all);
+ const by=Object.entries(cats).map(([k,c])=>{
+   const a=all.filter(t=>t.category===k),q=progressFor(a);
+   return {c,a,q};
+ }).filter(x=>x.a.length);
+ const periodBtn=(key,label)=>`<button class="chip ${state.statsPeriod===key?"active":""}" data-stats-period="${key}">${label}</button>`;
+ const categoryButtons=`<div class="filters" style="margin-top:10px"><strong style="font-size:12px;color:var(--muted);padding:8px 2px">Categoria:</strong><button class="chip ${state.statsCategory==="all"?"active":""}" data-stats-category="all">Todas</button>${Object.entries(cats).map(([k,c])=>`<button class="chip ${state.statsCategory===k?"active":""}" data-stats-category="${k}">${c.label}</button>`).join("")}</div>`;
+ const custom=state.statsPeriod==="custom"?`<div class="settings-card" style="margin-bottom:18px"><div class="form-grid"><div class="field"><label>Data inicial</label><input type="date" id="statsStart" value="${state.statsStart||todayISO()}"></div><div class="field"><label>Data final</label><input type="date" id="statsEnd" value="${state.statsEnd||todayISO()}"></div></div><div class="modal-actions"><button class="primary" id="applyStatsRange">Aplicar período</button></div></div>`:"";
+ return `<div class="filters">${periodBtn("week","Semana")}${periodBtn("month","Mês")}${periodBtn("year","Ano")}${periodBtn("custom","Personalizado")}<span style="font-size:12px;color:var(--muted);padding:8px">${esc(range.label)}</span></div>
+ ${custom}${categoryButtons}
  <div class="stats-grid"><div class="stat"><div class="stat-label">Taxa de conclusão</div><div class="stat-value">${p.pct}%</div></div><div class="stat"><div class="stat-label">Planejadas</div><div class="stat-value">${p.total}</div></div><div class="stat"><div class="stat-label">Concluídas</div><div class="stat-value">${p.done}</div></div><div class="stat"><div class="stat-label">Pendentes</div><div class="stat-value">${p.total-p.done}</div></div></div>
- <div class="settings-card"><h3>Conclusão por categoria</h3><div class="bar-list">${by.map(x=>`<div class="bar-item"><span>${x.c.label}</span><div class="bar"><span style="width:${x.q.pct}%;background:${x.c.color}"></span></div><strong>${x.q.pct}%</strong></div>`).join("")||`<div class="empty">Ainda não há dados suficientes.</div>`}</div></div>`;
+ <div class="settings-card"><h3>Conclusão por categoria</h3><div class="bar-list">${by.map(x=>`<div class="bar-item"><span>${x.c.label}</span><div class="bar"><span style="width:${x.q.pct}%;background:${x.c.color}"></span></div><strong>${x.q.pct}%</strong></div>`).join("")||`<div class="empty">Não há tarefas no período selecionado.</div>`}</div></div>`;
 }
 function render(){
  const titles={today:"Hoje",week:"Semana",calendar:"Calendário",stats:"Estatísticas"};document.getElementById("pageTitle").textContent=titles[state.view];
@@ -185,6 +213,18 @@ function bindDynamic(){
  document.querySelectorAll("[data-check]").forEach(b=>b.onclick=e=>{e.stopPropagation();const t=tasks.find(x=>x.id==b.dataset.check);t.completed=!t.completed;save();toast(t.completed?"Tarefa concluída ✓":"Tarefa reaberta");render()});
  document.querySelectorAll("[data-detail]").forEach(el=>el.onclick=e=>{openDetail(Number(el.dataset.detail))});
  document.querySelectorAll("[data-filter]").forEach(el=>el.onclick=()=>{state.filter=el.dataset.filter;render()});
+ document.querySelectorAll("[data-stats-period]").forEach(el=>el.onclick=()=>{
+   state.statsPeriod=el.dataset.statsPeriod;
+   if(state.statsPeriod==="custom" && (!state.statsStart || !state.statsEnd)){state.statsStart=todayISO();state.statsEnd=todayISO();}
+   render();
+ });
+ document.querySelectorAll("[data-stats-category]").forEach(el=>el.onclick=()=>{state.statsCategory=el.dataset.statsCategory;render()});
+ document.getElementById("applyStatsRange")?.addEventListener("click",()=>{
+   state.statsStart=document.getElementById("statsStart").value;
+   state.statsEnd=document.getElementById("statsEnd").value;
+   if(!state.statsStart || !state.statsEnd){toast("Escolha as duas datas.");return}
+   state.statsPeriod="custom"; render(); toast("Período atualizado");
+ });
  document.getElementById("prevWeek")?.addEventListener("click",()=>{state.weekOffset--;render()});document.getElementById("nextWeek")?.addEventListener("click",()=>{state.weekOffset++;render()});document.getElementById("todayWeek")?.addEventListener("click",()=>{state.weekOffset=0;render()});
  document.getElementById("prevMonth")?.addEventListener("click",()=>{state.monthOffset--;render()});document.getElementById("nextMonth")?.addEventListener("click",()=>{state.monthOffset++;render()});document.getElementById("monthToday")?.addEventListener("click",()=>{state.monthOffset=0;render()});
  document.querySelectorAll(".cal-cell[data-date]").forEach(c=>c.addEventListener("dblclick",()=>openNew(c.dataset.date)));

@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Foco.</title>
+<style>
+:root{--bg:#f4f7f5;--card:#fff;--text:#18231d;--muted:#718078;--line:#dfe7e2;--accent:#48a36b;--accent2:#b8e8c7;--soft:#eaf7ee;--danger:#c75d5d;--gray:#a9b2ad;--buttonText:#fff}
+html.dark{--bg:#111713;--card:#19201b;--text:#edf5ef;--muted:#a4b2a9;--line:#303b34;--soft:#203127}
+
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+aside{position:fixed;inset:0 auto 0 0;width:220px;background:var(--card);border-right:1px solid var(--line);padding:18px 13px;transition:.22s;z-index:4}
+aside.collapsed{width:68px}.logo{font-size:23px;font-weight:850;padding:5px 12px 25px}.logo b{color:var(--accent)}
+nav button,.bottom button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--muted);padding:11px 13px;border-radius:11px;margin:3px 0;text-align:left}
+nav button.active,nav button:hover,.bottom button:hover{background:var(--soft);color:var(--accent)}
+aside.collapsed span,aside.collapsed .usertext{display:none}aside.collapsed nav button,aside.collapsed .bottom button{justify-content:center}
+.bottom{position:absolute;bottom:14px;left:13px;right:13px}
+main{margin-left:220px;padding:28px 34px;transition:.22s;min-height:100vh;max-width:1450px}aside.collapsed~main{margin-left:68px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.top h1{margin:0;font-size:29px}.sub{color:var(--muted);font-size:13px;margin-top:4px}.actions{display:flex;gap:8px}
+.btn{border:1px solid var(--line);background:var(--card);padding:9px 12px;border-radius:10px;color:var(--text)}.btn:hover{border-color:#b8c9be}.primary{background:var(--accent);color:var(--buttonText);border-color:var(--accent);font-weight:700}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px}.card,.task,.day,.calendar,.timer{background:var(--card);border:1px solid var(--line);border-radius:16px}.card{padding:17px}
+.timer{padding:25px;text-align:center}.mode{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em}.clock{font-size:76px;line-height:1;font-weight:800;letter-spacing:-3px;margin:15px 0}.timer small{color:var(--muted)}.timer-actions{display:flex;justify-content:center;gap:8px;margin-top:18px;flex-wrap:wrap}
+.settings-row{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:20px}.setting{border:1px solid var(--line);border-radius:12px;padding:10px;text-align:left}.setting label{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px}.setting input,.setting select{width:100%;border:0;outline:0;background:transparent;color:var(--text)}
+.task{display:flex;align-items:center;gap:11px;padding:13px;margin:8px 0;cursor:pointer}.check{width:21px;height:21px;border:1.5px solid #aab7af;border-radius:50%;display:grid;place-items:center;background:none;flex:none}.check.done{background:#55b879;color:#fff;border-color:#55b879}.task.done .title{text-decoration:line-through;color:var(--muted)}.task.overdue{border-left:4px solid var(--danger)}.task.pending{border-left:4px solid var(--gray)}.task.done{border-left:4px solid var(--accent)}
+.taskbody{flex:1}.meta{font-size:12px;color:var(--muted);margin-top:4px}.subtasks{font-size:12px;color:var(--muted);margin-top:7px}.quote{padding:20px;background:linear-gradient(135deg,#fff,var(--soft));border:1px solid var(--line);border-radius:17px;margin-bottom:16px;font-size:18px;font-weight:650}
+.week{display:grid;grid-template-columns:repeat(7,minmax(125px,1fr));gap:8px;overflow:auto}.day{padding:10px;min-height:430px}.day.today{box-shadow:inset 0 3px var(--accent)}.day h3{font-size:13px;margin:0 0 10px;border-bottom:1px solid var(--line);padding-bottom:9px}.day h3 small{display:block;color:var(--muted);font-weight:500;margin-top:3px}.mini{font-size:12px;padding:8px;border-left:4px solid var(--gray);background:#f4f5f4;border-radius:7px;margin:5px 0;cursor:pointer}.mini.done{border-left-color:var(--accent);background:var(--soft)}.mini.overdue{border-left-color:var(--danger);background:#fff0f0}
+.calhead,.calgrid{display:grid;grid-template-columns:repeat(7,1fr)}.calhead div{text-align:center;padding:10px;color:var(--muted);font-size:12px;font-weight:700}.calgrid{background:var(--line);gap:1px}.cell{background:var(--card);min-height:125px;padding:7px}.num{font-size:12px;color:var(--muted)}.cell.today .num{display:inline-grid;place-items:center;width:25px;height:25px;background:var(--accent);color:#fff;border-radius:50%}.event{font-size:11px;padding:4px 5px;border-radius:6px;background:#f0f1f0;color:#69736d;margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border-left:3px solid var(--gray)}.event.done{background:var(--soft);color:#318451;border-left-color:var(--accent)}.event.overdue{background:#fff0f0;color:#b34f4f;border-left-color:var(--danger)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}.stat small{color:var(--muted)}.stat strong{display:block;font-size:28px;margin-top:5px}
+.modalbg{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.modalbg.open{display:flex}.modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:var(--card);border-radius:18px;padding:22px}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:12px;color:var(--muted);font-weight:700}.field input,.field select,.field textarea{padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--text)}textarea{min-height:80px}.modalfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.subtask{display:flex;gap:7px;margin:6px 0}.subtask input[type=text]{flex:1}.phrase{display:flex;gap:8px;margin:7px 0}.phrase input{flex:1}.toast{position:fixed;right:20px;bottom:20px;background:var(--text);color:#fff;padding:10px 14px;border-radius:9px;display:none;z-index:20}.toast.show{display:block}
+.pause-note{margin-top:12px;color:var(--muted);font-size:12px}.danger{color:var(--danger)}
+.fullscreen-timer{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;text-align:center;background:rgba(0,0,0,.72);backdrop-filter:blur(2px);color:#fff}
+.fullscreen-timer.open{display:flex}.fullscreen-inner{width:min(900px,92vw)}.fullscreen-timer .fs-mode{font-size:16px;letter-spacing:.12em;text-transform:uppercase;opacity:.8}.fullscreen-timer .fs-clock{font-size:clamp(90px,18vw,220px);font-weight:800;line-height:1;letter-spacing:-.05em;margin:25px 0}.fullscreen-timer .fs-phrase{font-size:clamp(16px,2vw,25px);opacity:.9;margin:20px}.fullscreen-timer .btn{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.3)}.fullscreen-timer .primary{background:var(--accent);border-color:var(--accent)}
+.sound-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.sound-card{padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--card);cursor:pointer}.sound-card.active{border-color:var(--accent);background:var(--soft)}.sound-card small{display:block;color:var(--muted);margin-top:3px}
+@media(max-width:650px){.sound-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:950px){.grid{grid-template-columns:1fr}.settings-row{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){aside{width:68px}aside span,aside .usertext{display:none}aside nav button,aside .bottom button{justify-content:center}main{margin-left:68px;padding:18px}.form{grid-template-columns:1fr}.field.full{grid-column:auto}.settings-row{grid-template-columns:1fr}.clock{font-size:58px}}
+.audio-preview{display:flex;gap:8px;align-items:center;margin-top:8px}.volume-line{display:flex;align-items:center;gap:10px}.volume-line input{flex:1}.volume-value{min-width:42px;text-align:right}
+</style>
+</head>
+<body>
+<aside id="side">
+  <div class="logo">✓ <span>Foco<b>.</b></span></div>
+  <nav>
+    <button class="active" data-view="today">⌂ <span>Hoje</span></button>
+    <button data-view="week">▦ <span>Semana</span></button>
+    <button data-view="calendar">□ <span>Calendário</span></button>
+    <button data-view="month">◔ <span>Mês</span></button>
+    <button data-view="settings">⚙ <span>Configurações</span></button>
+  </nav>
+  <div class="bottom"><button id="newSide">＋ <span>Nova tarefa</span></button></div>
+</aside>
+
+<main>
+  <div class="top">
+    <div><h1 id="title">Hoje</h1><div class="sub" id="subtitle"></div></div>
+    <div class="actions"><button class="btn" id="collapse">☰</button><button class="btn primary" id="new">＋ Nova tarefa</button></div>
+  </div>
+  <div id="content"></div>
+</main>
+
+<div class="modalbg" id="taskModal"><div class="modal">
+  <h2 id="mtitle">Nova tarefa</h2>
+  <form id="form">
+    <div class="form">
+      <div class="field full"><label>Tarefa *</label><input id="name" required></div>
+      <div class="field"><label>Data *</label><input type="date" id="date" required></div>
+      <div class="field full"><label>Subtarefas</label><div id="subs"></div><button type="button" class="btn" id="addSub">＋ Adicionar subtarefa</button></div>
+    </div>
+    <div class="modalfoot"><button type="button" class="btn" id="cancel">Cancelar</button><button class="btn primary">Salvar</button></div>
+  </form>
+</div></div>
+
+<div class="modalbg" id="settingsModal"><div class="modal">
+  <h2>Configurações</h2>
+  <div class="card">
+    <h3>Pomodoro</h3>
+    <div class="form">
+      <div class="field"><label>Foco (minutos)</label><input id="focusMin" type="number" min="1" max="180"></div>
+      <div class="field"><label>Descanso curto (minutos)</label><input id="shortMin" type="number" min="1" max="60"></div>
+      <div class="field"><label>Descanso longo (minutos)</label><input id="longMin" type="number" min="1" max="120"></div>
+      <div class="field"><label>Descanso longo após quantos focos?</label><input id="longAfter" type="number" min="1" max="20"></div>
+      <div class="field"><label>Som ao terminar</label><select id="sound"><option value="bell">Sino</option><option value="double">Dois toques</option><option value="soft">Toque suave</option><option value="none">Silencioso</option></select></div>
+    </div>
+    <div class="modalfoot"><button class="btn primary" id="savePomodoro">Salvar pomodoro</button></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>Frases motivacionais</h3>
+    <div class="sub">Uma frase diária será escolhida automaticamente. Você também pode adicionar as suas.</div>
+    <div id="phrases" style="margin-top:10px"></div>
+    <button class="btn" id="addPhrase">＋ Adicionar frase</button>
+  </div>
+  <div class="modalfoot"><button class="btn" id="closeSettings">Fechar</button></div>
+</div></div>
+
+<div class="modalbg" id="pauseModal"><div class="modal" style="text-align:center">
+  <h2>Pausa concluída</h2>
+  <p>Você está pronto para continuar o foco?</p>
+  <div id="pauseCountdown" style="font-size:42px;font-weight:800">01:00</div>
+  <div class="modalfoot" style="justify-content:center"><button class="btn primary" id="resumeFocus">Continuar foco</button><button class="btn" id="resetFocus">Reiniciar foco</button></div>
+</div></div>
+
+<div class="modalbg" id="detailModal"><div class="modal"><h2 id="detailTitle"></h2><div id="detail"></div><div class="modalfoot"><button class="btn" id="edit">Editar</button><button class="btn" id="delete">Excluir</button></div></div></div>
+<div class="fullscreen-timer" id="fullscreenTimer">
+  <div class="fullscreen-inner">
+    <div class="fs-mode" id="fsMode">Foco</div>
+    <div class="fs-clock" id="fsClock">25:00</div>
+    <div class="fs-phrase" id="fsPhrase"></div>
+    <div class="timer-actions">
+      <button class="btn" id="fsPause">Pausa de 5 min</button><button class="btn danger" id="fsAbandon">Abandonar foco</button>
+      <button class="btn primary" id="fsExit">Sair da tela cheia</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id), pad=n=>String(n).padStart(2,"0");
+const today=()=>{let d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+let tasks=JSON.parse(localStorage.getItem("tasks2")||"[]");
+let phrases=JSON.parse(localStorage.getItem("phrases")||"[]");
+let view="today",editing=null,detailId=null,woff=0,moff=0;
+let settings=JSON.parse(localStorage.getItem("pomodoroSettings")||"null")||{focus:25,short:5,long:15,longAfter:4,sound:"bell",theme:"system",accent:"#48a36b",text:"#18231d",bg:"#f4f7f5",ambient:"none",volume:35};
+let pom={mode:"focus",remaining:settings.focus*60,running:false,focusCount:0,interval:null,paused:false};
+let pauseTimer=null,pauseLeft=60;
+
+let audioCtx=null, ambientNodes=[], ambientGain=null;
+function applyTheme(){
+  let theme=settings.theme||"system", dark=theme==="dark"||(theme==="system"&&matchMedia("(prefers-color-scheme:dark)").matches);
+  document.documentElement.classList.toggle("dark",dark);
+  document.documentElement.style.setProperty("--accent",settings.accent||"#48a36b");
+  document.documentElement.style.setProperty("--text",settings.text||(dark?"#edf5ef":"#18231d"));
+  document.documentElement.style.setProperty("--bg",settings.bg||(dark?"#111713":"#f4f7f5"));
+  if(dark && (!settings.text || settings.text==="#18231d")) document.documentElement.style.setProperty("--text","#edf5ef");
+}
+function stopAmbient(){
+  ambientNodes.forEach(n=>{try{n.stop?.()}catch{} try{n.disconnect?.()}catch{}});
+  ambientNodes=[]; if(ambientGain){try{ambientGain.disconnect()}catch{} ambientGain=null}
+}
+
+function startAmbient(type=settings.ambient){
+  stopAmbient(); if(!type||type==="none")return;
+  audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended")audioCtx.resume();
+  ambientGain=audioCtx.createGain();ambientGain.gain.value=(settings.volume??35)/100*0.18;ambientGain.connect(audioCtx.destination);
+  if(["white","pink","brown","rain","forest"].includes(type)){
+    let size=audioCtx.sampleRate*60, buffer=audioCtx.createBuffer(1,size,audioCtx.sampleRate), data=buffer.getChannelData(0), last=0;
+    for(let i=0;i<size;i++){let r=Math.random()*2-1;
+      if(type==="brown"){last=(last+r*.02);data[i]=last*3}
+      else if(type==="pink"){last=.98*last+.02*r;data[i]=last*2.5}
+      else data[i]=r;
+    }
+    let src=audioCtx.createBufferSource();src.buffer=buffer;src.loop=true;
+    let filter=audioCtx.createBiquadFilter();
+    if(type==="rain"){filter.type="bandpass";filter.frequency.value=1800;filter.Q.value=.5}
+    else if(type==="forest"){filter.type="lowpass";filter.frequency.value=1100}
+    else filter.type="lowpass"; if(type==="white")filter.frequency.value=10000;
+    src.connect(filter).connect(ambientGain);src.start();ambientNodes.push(src);
+    if(type==="rain"||type==="forest"){
+      let lfo=audioCtx.createOscillator(), lg=audioCtx.createGain();lfo.frequency.value=type==="rain"?0.25:0.08;lg.gain.value=.08;lfo.connect(lg).connect(ambientGain.gain);lfo.start();ambientNodes.push(lfo);
+    }
+  }
+}
+
+function updateAmbient(){if(settings.ambient==="none")stopAmbient();else if(pom.running)startAmbient(settings.ambient)}
+const save=()=>{localStorage.setItem("tasks2",JSON.stringify(tasks));localStorage.setItem("phrases",JSON.stringify(phrases));localStorage.setItem("pomodoroSettings",JSON.stringify(settings))};
+function status(t){if(t.completed)return"done";return t.date<today()?"overdue":"pending"}
+function dateText(ds){return new Date(ds+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"})}
+function taskHTML(t){
+  let subs=t.subtasks||[],done=subs.filter(s=>s.done).length,s=status(t);
+  return `<div class="task ${s}" data-id="${t.id}"><button class="check ${t.completed?"done":""}" data-check="${t.id}">${t.completed?"✓":""}</button><div class="taskbody"><div class="title">${esc(t.title)}</div><div class="meta">${dateText(t.date)} · ${s==="done"?"Concluída":s==="overdue"?"Atrasada":"A fazer"}</div>${subs.length?`<div class="subtasks">${done}/${subs.length} subtarefas</div>`:""}</div></div>`;
+}
+function dailyPhrase(){
+  let all=["Um passo de cada vez.","Faça o que precisa ser feito.","Consistência vence intensidade.","Comece. Depois ajuste.","Foco no próximo passo.","Hoje é um bom dia para avançar.",...phrases];
+  let d=new Date(),n=Math.floor(new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime()/86400000);
+  return all[Math.abs(n)%all.length];
+}
+function timerText(){let r=Math.max(0,pom.remaining),m=Math.floor(r/60),s=r%60;return `${pad(m)}:${pad(s)}`}
+function timerView(){
+  let label=pom.mode==="focus"?"Foco":pom.mode==="short"?"Descanso curto":"Descanso longo";
+  let count=`${pom.focusCount} foco${pom.focusCount===1?"":"s"} concluído${pom.focusCount===1?"":"s"}`;
+  return `<div class="grid">
+    <div>
+      <div class="quote">“${esc(dailyPhrase())}”</div>
+      <div class="timer">
+        <div class="mode">${label}</div><div class="clock" id="clock">${timerText()}</div>
+        <small>${count}</small>
+        <div class="timer-actions">
+          ${pom.running?`<button class="btn" id="pausePom">Pausar foco (5 min)</button>`:""}${pom.mode==="focus"&&pom.running?`<button class="btn danger" id="abandonPom">Abandonar foco</button>`:""}${pom.mode==="focus"?`<button class="btn" id="fullPom">Tela cheia</button>`:""}
+          <button class="btn primary" id="startPom">${pom.running?"Reiniciar":"Iniciar"}</button>
+          <button class="btn" id="skipPom">Pular</button>
+        </div>
+        ${pom.mode==="focus"&&pom.running?'<div class="pause-note">Durante o foco, a pausa permitida é cronometrada. Se você não confirmar a retomada em 1 minuto, o foco será reiniciado.</div>':""}
+      </div>
+      <div class="card" style="margin-top:12px"><b>Tarefas de hoje</b>${tasks.filter(t=>t.date===today()).map(taskHTML).join("")||'<div class="sub" style="margin-top:10px">Nenhuma tarefa para hoje.</div>'}</div>
+    </div>
+    <div class="card"><h3>Resumo</h3><p><b>${tasks.filter(t=>t.date===today()&&t.completed).length}</b> concluídas hoje</p><p><b>${tasks.filter(t=>t.date===today()&&!t.completed).length}</b> pendentes hoje</p><hr style="border:0;border-top:1px solid var(--line)"><p class="sub">Configuração atual: ${settings.focus} min de foco · ${settings.short} min curto · ${settings.long} min longo · longo após ${settings.longAfter} focos.</p></div>
+  </div>`;
+}
+function todayView(){return timerView()}
+function weekView(){
+  let d=new Date(),diff=(d.getDay()+7-1)%7;d.setDate(d.getDate()-diff+woff*7);
+  let days=Array.from({length:7},(_,i)=>{let x=new Date(d);x.setDate(d.getDate()+i);return x});
+  return `<div style="margin-bottom:12px"><button class="btn" id="pw">‹</button> <button class="btn" id="tw">Hoje</button> <button class="btn" id="nw">›</button></div><div class="week">${days.map(x=>{let a=tasks.filter(t=>t.date===iso(x));return `<div class="day ${iso(x)===today()?"today":""}"><h3>${x.toLocaleDateString("pt-BR",{weekday:"long"})}<small>${x.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</small></h3>${a.map(t=>`<div class="mini ${status(t)}" data-id="${t.id}">${esc(t.title)}</div>`).join("")||'<span class=sub>Sem tarefas</span>'}</div>`}).join("")}</div>`;
+}
+function calendarView(){
+  let base=new Date();base.setMonth(base.getMonth()+moff);let y=base.getFullYear(),m=base.getMonth(),first=new Date(y,m,1),start=first.getDay(),last=new Date(y,m+1,0).getDate(),total=Math.ceil((start+last)/7)*7,cells="";
+  for(let i=0;i<total;i++){let n=i-start+1;if(n<1||n>last){cells+="<div class=cell></div>";continue}let ds=iso(new Date(y,m,n)),a=tasks.filter(t=>t.date===ds);cells+=`<div class="cell ${ds===today()?"today":""}"><div class=num>${n}</div>${a.slice(0,6).map(t=>`<div class="event ${status(t)}" data-id="${t.id}">${esc(t.title)}</div>`).join("")}</div>`}
+  return `<div style="margin-bottom:12px"><button class=btn id=pm>‹</button> <button class=btn id=tm>Hoje</button> <button class=btn id=nm>›</button> <b style="margin-left:10px">${base.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}</b></div><div class=calendar><div class=calhead>${["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(x=>`<div>${x}</div>`).join("")}</div><div class=calgrid>${cells}</div></div><div class="sub" style="margin-top:10px">Cinza = a fazer · verde = concluída · vermelho = atrasada.</div>`;
+}
+function monthView(){
+  let now=new Date(),y=now.getFullYear(),m=now.getMonth(),prefix=`${y}-${pad(m+1)}`,a=tasks.filter(t=>t.date.startsWith(prefix)),done=a.filter(t=>t.completed).length;
+  return `<div class=stats><div class=stat><small>Tarefas do mês</small><strong>${a.length}</strong></div><div class=stat><small>Concluídas</small><strong>${done}</strong></div><div class=stat><small>Pendentes</small><strong>${a.length-done}</strong></div><div class=stat><small>Atrasadas</small><strong>${a.filter(t=>!t.completed&&t.date<today()).length}</strong></div></div><div class=card style="margin-top:16px"><h3>Checklist mensal</h3>${a.sort((x,y)=>x.date.localeCompare(y.date)).map(taskHTML).join("")||'<div class=sub>Nenhuma tarefa neste mês.</div>'}</div>`;
+}
+function settingsView(){
+  return `<div class=card><h2>Configurações</h2><div class=form><div class=field><label>Foco</label><input id=fm type=number value="${settings.focus}"></div><div class=field><label>Descanso curto</label><input id=sm type=number value="${settings.short}"></div><div class=field><label>Descanso longo</label><input id=lm type=number value="${settings.long}"></div><div class=field><label>Descanso longo após</label><input id=la type=number value="${settings.longAfter}"></div><div class=field><label>Som</label><select id=ss><option value=bell ${settings.sound==="bell"?"selected":""}>Sino</option><option value=double ${settings.sound==="double"?"selected":""}>Dois toques</option><option value=soft ${settings.sound==="soft"?"selected":""}>Toque suave</option><option value=none ${settings.sound==="none"?"selected":""}>Silencioso</option></select><div class=audio-preview><button class="btn" type="button" id="previewNotif">▶ Ouvir prévia</button></div><div class=field><label>Volume da notificação</label><div class=volume-line><input id=notifVolume type=range min=0 max=100 value="70"><span id=notifVolumeValue class=volume-value>70%</span></div></div></div><div class=modalfoot><button class="btn primary" id=saveSettings>Salvar</button></div></div>
+  <div class=card style="margin-top:12px"><h3>Aparência</h3>
+    <div class=form>
+      <div class=field><label>Tema</label><select id=themeSelect><option value=light>Claro</option><option value=dark>Escuro</option><option value=system>De acordo com o sistema</option></select></div>
+      <div class=field><label>Cor dos botões</label><input id=accentColor type=color></div>
+      <div class=field><label>Cor das letras</label><input id=textColor type=color></div>
+      <div class=field><label>Cor do fundo</label><input id=bgColor type=color></div>
+    </div>
+    <div class=modalfoot><button class="btn" id=resetColors>Restaurar cores</button></div>
+  </div>
+  <div class=card style="margin-top:12px"><h3>Sons de foco</h3>
+    <div class=sub>Ruídos e ambientes gerados diretamente no navegador, sem depender de arquivos de áudio externos.</div>
+    <div class=sound-grid id=soundGrid>
+      <div class="sound-card" data-amb="none">🔇 Nenhum<small>Silêncio</small></div>
+      <div class="sound-card" data-amb="brown">🟤 Ruído marrom<small>Grave e contínuo</small></div>
+      <div class="sound-card" data-amb="white">⚪ Ruído branco<small>Chiado uniforme</small></div>
+      <div class="sound-card" data-amb="pink">🩷 Ruído rosa<small>Mais suave</small></div>
+      <div class="sound-card" data-amb="rain">🌧️ Chuva<small>Chuva sintetizada</small></div>
+      <div class="sound-card" data-amb="forest">🌲 Floresta<small>Ambiente natural</small></div>
+      <div class="sound-card" data-amb="lofi">🎧 Lo-fi<small>Reservado para áudio local</small></div>
+    </div>
+    <div class=audio-preview><button class="btn" type="button" id="previewAmbient">▶ Ouvir prévia</button><span class=sub>Toque novamente para parar.</span></div><div style="margin-top:12px"><label style="font-size:12px;color:var(--muted);font-weight:700">Volume</label><div class=volume-line><input id=ambVolume type=range min=0 max=100 value="35"><span id=ambVolumeValue class=volume-value>35%</span></div></div>
+  </div>
+  <div class=card style="margin-top:12px"><h3>Frases motivacionais</h3><div class=sub>As frases abaixo serão misturadas às frases diárias do aplicativo.</div><div id=phraseList style="margin-top:10px">${phrases.map((p,i)=>`<div class=phrase><input value="${esc(p)}" data-phrase="${i}"><button class=btn data-delphrase="${i}">×</button></div>`).join("")}</div><button class=btn id=addPhrase>＋ Adicionar frase</button></div>`;
+}
+function render(){
+  let titles={today:"Foco",week:"Semana",calendar:"Calendário",month:"Mês",settings:"Configurações"};
+  $("title").textContent=titles[view];$("subtitle").textContent=new Date().toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+  $("content").innerHTML=view==="today"?todayView():view==="week"?weekView():view==="calendar"?calendarView():view==="month"?monthView():settingsView();
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===view));bind();
+}
+function bind(){
+  document.querySelectorAll("[data-id]").forEach(x=>x.onclick=e=>{if(e.target.dataset.check)return;openDetail(+x.dataset.id)});
+  document.querySelectorAll("[data-check]").forEach(x=>x.onclick=e=>{e.stopPropagation();let t=tasks.find(t=>t.id==x.dataset.check);t.completed=!t.completed;if(t.completed)(t.subtasks||[]).forEach(s=>s.done=true);save();render()});
+  $("pw")?.addEventListener("click",()=>{woff--;render()});$("nw")?.addEventListener("click",()=>{woff++;render()});$("tw")?.addEventListener("click",()=>{woff=0;render()});
+  $("pm")?.addEventListener("click",()=>{moff--;render()});$("nm")?.addEventListener("click",()=>{moff++;render()});$("tm")?.addEventListener("click",()=>{moff=0;render()});
+  $("startPom")?.addEventListener("click",()=>startTimer());
+  $("pausePom")?.addEventListener("click",()=>startPause());$("abandonPom")?.addEventListener("click",()=>abandonFocus());$("fsAbandon")?.addEventListener("click",()=>abandonFocus());
+  $("skipPom")?.addEventListener("click",()=>finishTimer());
+  $("fullPom")?.addEventListener("click",()=>openFullscreen());
+  $("fsPause")?.addEventListener("click",()=>{if(pom.mode==="focus"&&pom.running)startPause()});
+  $("fsExit")?.addEventListener("click",exitFullscreen);
+  $("saveSettings")?.addEventListener("click",saveSettingsPage);
+  if($("themeSelect")){
+    $("themeSelect").value=settings.theme\vert{}\vert{}"system";$("accentColor").value=settings.accent||"#48a36b";$("textColor").value=settings.text\vert{}\vert{}"#18231d";$("bgColor").value=settings.bg||"#f4f7f5";$("ambVolume").value=settings.volume??35;$("ambVolumeValue").textContent=(settings.volume??35)+"%";$("notifVolume").value=settings.notificationVolume??70;$("notifVolumeValue").textContent=(settings.notificationVolume??70)+"%";
+    document.querySelectorAll(".sound-card").forEach(c=>c.classList.toggle("active",c.dataset.amb===(settings.ambient||"none")));
+    $("themeSelect").onchange=saveAppearance;$("accentColor").oninput=saveAppearance;$("textColor").oninput=saveAppearance;$("bgColor").oninput=saveAppearance;
+    
+    $("ambVolume").oninput=()=>{
+      settings.volume=+$("ambVolume").value;
+      $("ambVolumeValue").textContent=settings.volume+"%";
+      save();
+      if(ambientGain) ambientGain.gain.value = settings.volume / 100 * 0.18;
+    };
+
+    document.querySelectorAll(".sound-card").forEach(c=>c.onclick=()=>{settings.ambient=c.dataset.amb;save();document.querySelectorAll(".sound-card").forEach(x=>x.classList.toggle("active",x===c));if(pom.running)startAmbient(settings.ambient)});$("previewNotif")?.addEventListener("click",previewNotificationSound);$("previewAmbient")?.addEventListener("click",previewAmbientSound);$("notifVolume")?.addEventListener("input",()=>{settings.notificationVolume=+$("notifVolume").value;$("notifVolumeValue").textContent=settings.notificationVolume+"%";save()});
+    $("resetColors").onclick=()=>{settings.theme="system";settings.accent="#48a36b";settings.text="#18231d";settings.bg="#f4f7f5";save();applyTheme();render()};
+  }
+  $("addPhrase")?.addEventListener("click",()=>{phrases.push("Nova frase");save();render()});
+  document.querySelectorAll("[data-delphrase]").forEach(b=>b.onclick=()=>{phrases.splice(+b.dataset.delphrase,1);save();render()});
+  document.querySelectorAll("[data-phrase]").forEach(i=>i.oninput=()=>{phrases[+i.dataset.phrase]=i.value;save()});
+}
+function openTask(date=today(),t=null){editing=t?.id||null;$("mtitle").textContent=t?"Editar tarefa":"Nova tarefa";$("name").value=t?.title||"";$("date").value=t?.date\vert{}\vert{}date;renderSubs(t?.subtasks\vert{}\vert{}[]);$("taskModal").classList.add("open")}
+function renderSubs(a){$("subs").innerHTML=a.map(s=>`<div class=subtask><input type=checkbox ${s.done?"checked":""}><input type=text value="${esc(s.text)}"><button type=button class=btn>×</button></div>`).join("");document.querySelectorAll("#subs .subtask button").forEach(b=>b.onclick=()=>b.parentElement.remove())}
+$("addSub").onclick=()=>{let r=document.createElement("div");r.className="subtask";r.innerHTML='<input type=checkbox><input type=text placeholder="Subtarefa"><button type=button class=btn>×</button>';r.querySelector("button").onclick=()=>r.remove();$("subs").appendChild(r)}
+$("form").onsubmit=e=>{e.preventDefault();let subs=[...document.querySelectorAll("#subs .subtask")].map(r=>({done:r.children[0].checked,text:r.children[1].value.trim()})).filter(x=>x.text);let obj={title:$("name").value.trim(),date:$("date").value,subtasks:subs,completed:subs.length?subs.every(x=>x.done):false};if(editing)Object.assign(tasks.find(t=>t.id===editing),obj);else tasks.push({id:Date.now(),...obj});save();$("taskModal").classList.remove("open");render();toast("Tarefa salva")}
+$("new").onclick=()=>openTask();$("newSide").onclick=()=>openTask();$("cancel").onclick=()=>$("taskModal").classList.remove("open");$("collapse").onclick=()=>$("side").classList.toggle("collapsed");
+function openDetail(id){detailId=id;let t=tasks.find(x=>x.id===id);$("detailTitle").textContent=t.title;$("detail").innerHTML=`<p><b>Data:</b> ${dateText(t.date)}</p><p><b>Status:</b> ${status(t)==="done"?"Concluída ✓":status(t)==="overdue"?"Atrasada":"A fazer"}</p>${t.subtasks?.length?`<p><b>Subtarefas:</b> ${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}</p>`:""}`;$("detailModal").classList.add("open")}
+$("edit").onclick=()=>{$("detailModal").classList.remove("open");openTask(null,tasks.find(t=>t.id===detailId))};$("delete").onclick=()=>{tasks=tasks.filter(t=>t.id!==detailId);save();$("detailModal").classList.remove("open");render()};
+
+function saveAppearance(){
+  settings.theme=$("themeSelect").value;settings.accent=$("accentColor").value;settings.text=$("textColor").value;settings.bg=$("bgColor").value;
+  settings.ambient=document.querySelector(".sound-card.active")?.dataset.amb||settings.ambient||"none";
+  settings.volume=+$("ambVolume").value||35;save();applyTheme();updateAmbient();
+}
+function saveSettingsPage(){
+  settings.focus=Math.max(1,+$("fm").value||25);settings.short=Math.max(1,+$("sm").value\vert{}\vert{}5);settings.long=Math.max(1,+$("lm").value||15);settings.longAfter=Math.max(1,+$("la").value\vert{}\vert{}4);settings.sound=$("ss").value;saveAppearance();
+  if(!pom.running){pom.remaining=settings.focus*60;pom.mode="focus"} save();render();toast("Configurações salvas");
+}
+
+function playSound(soundType = settings.sound){
+  if(soundType==="none")return;
+  try{
+    let C=window.AudioContext||window.webkitAudioContext,ctx=new C();
+    let vol=(settings.notificationVolume??70)/100*0.5;
+
+    if (soundType === "double") {
+      [660, 880].forEach((f, i) => {
+        let o=ctx.createOscillator(),g=ctx.createGain();
+        o.type="square"; o.frequency.value=f;
+        g.gain.setValueAtTime(0, ctx.currentTime + i*.2);
+        g.gain.linearRampToValueAtTime(vol, ctx.currentTime + i*.2 + .02);
+        g.gain.linearRampToValueAtTime(0, ctx.currentTime + i*.2 + .15);
+        o.connect(g).connect(ctx.destination);
+        o.start(ctx.currentTime + i*.2);
+        o.stop(ctx.currentTime + i*.2 + .2);
+      });
+    } else if (soundType === "soft") {
+      let o=ctx.createOscillator(),g=ctx.createGain();
+      o.type="sine"; o.frequency.value=400;
+      g.gain.setValueAtTime(0, ctx.currentTime);
+      g.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.3);
+      g.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.2);
+      o.connect(g).connect(ctx.destination);
+      o.start(ctx.currentTime);
+      o.stop(ctx.currentTime + 1.2);
+    } else {
+      let o=ctx.createOscillator(),g=ctx.createGain();
+      o.type="sine"; o.frequency.value=880;
+      g.gain.setValueAtTime(0, ctx.currentTime);
+      g.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+      o.connect(g).connect(ctx.destination);
+      o.start(ctx.currentTime);
+      o.stop(ctx.currentTime + 1.5);
+    }
+  }catch{}
+}
+
+function previewNotificationSound(){
+  playSound($("ss").value);
+}
+
+let ambientPreview=false;
+function previewAmbientSound(){
+  if(ambientPreview){ambientPreview=false;stopAmbient();return} 
+  if(!settings.ambient||settings.ambient==="none"||settings.ambient==="lofi"){toast("Escolha um som de ambiente para ouvir a prévia.");return} 
+  ambientPreview=true;
+  startAmbient(settings.ambient);
+  setTimeout(()=>{if(ambientPreview){ambientPreview=false;stopAmbient()}},8000);
+}
+
+function abandonFocus(){if(pom.mode!=="focus"||!pom.running)return;if(!confirm("Abandonar este foco? O tempo restante será perdido e o foco não contará como concluído."))return;clearInterval(pom.interval);clearInterval(pauseTimer);pom.running=false;stopAmbient();$("pauseModal")?.classList.remove("open");pom.mode="focus";pom.remaining=settings.focus*60;exitFullscreen();render();toast("Foco abandonado.")}
+
+async function notify(msg){playSound();if("Notification"in window){if(Notification.permission==="default")try{await Notification.requestPermission()}catch{};if(Notification.permission==="granted")new Notification("Foco.",{body:msg})}toast(msg)}
+function startTimer(){
+  if(pom.running){pom.running=false;clearInterval(pom.interval);render();return}
+  pom.running=true;if(!pom.remaining)resetCurrent();pom.interval=setInterval(tick,1000);if(pom.mode==="focus")startAmbient(settings.ambient);render();
+}
+function tick(){if(!pom.running)return;pom.remaining--;let c=$("clock");if(c)c.textContent=timerText();syncFullscreen();if(pom.remaining<=0)finishTimer()}
+function resetCurrent(){pom.remaining=(pom.mode==="focus"?settings.focus:pom.mode==="short"?settings.short:settings.long)*60}
+function finishTimer(){
+  clearInterval(pom.interval);pom.running=false;stopAmbient();
+  if(pom.mode==="focus"){pom.focusCount++;notify("Tempo de foco encerrado. Hora do descanso.");pom.mode=(pom.focusCount%settings.longAfter===0)?"long":"short"}
+  else{notify("Descanso encerrado. Hora de voltar ao foco.");pom.mode="focus"}
+  resetCurrent();render();
+}
+function startPause(){
+  if(!pom.running||pom.mode!=="focus")return;
+  clearInterval(pom.interval);pom.running=false;
+  let original=pom.remaining;
+  toast("Pausa de 5 minutos iniciada.");
+  let end=Date.now()+5*60*1000;
+  let iv=setInterval(()=>{let left=Math.max(0,end-Date.now());if(left<=0){clearInterval(iv);pausePrompt(original)}},250);
+}
+function pausePrompt(original){
+  pauseLeft=60;$("pauseModal").classList.add("open");$("pauseCountdown").textContent="01:00";
+  clearInterval(pauseTimer);pauseTimer=setInterval(()=>{pauseLeft--;$("pauseCountdown").textContent=`00:${pad(pauseLeft)}`;if(pauseLeft<=0){clearInterval(pauseTimer);$("pauseModal").classList.remove("open");pom.remaining=settings.focus*60;notify("O foco foi reiniciado porque a retomada não foi confirmada em 1 minuto.");render()}},1000);
+  $("resumeFocus").onclick=()=>{clearInterval(pauseTimer);$("pauseModal").classList.remove("open");pom.remaining=original;pom.running=true;pom.interval=setInterval(tick,1000);render()};
+  $("resetFocus").onclick=()=>{clearInterval(pauseTimer);$("pauseModal").classList.remove("open");pom.remaining=settings.focus*60;pom.running=true;pom.interval=setInterval(tick,1000);notify("Foco reiniciado.");render()};
+}
+
+function openFullscreen(){
+  $("fullscreenTimer").classList.add("open");syncFullscreen();
+  if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
+}
+function exitFullscreen(){
+  $("fullscreenTimer").classList.remove("open");
+  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+}
+function syncFullscreen(){
+  if(!$("fsClock"))return;
+  $("fsClock").textContent=timerText();
+  $("fsMode").textContent=pom.mode==="focus"?"Foco":pom.mode==="short"?"Descanso curto":"Descanso longo";
+  $("fsPhrase").textContent="“"+dailyPhrase()+"”";
+}
+document.addEventListener("fullscreenchange",()=>{if(!document.fullscreenElement)$("fullscreenTimer")?.classList.remove("open")});
+function toast(s){$("toast").textContent=s;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2200)}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{view=b.dataset.view;render()});
+$("closeSettings")?.addEventListener("click",()=>$("settingsModal").classList.remove("open"));
+$("savePomodoro")?.addEventListener("click",()=>{});
+applyTheme();
+render();
+</script>
+</body>
+</html>
